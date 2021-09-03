@@ -26,6 +26,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 
 /**
+ *
+ * 支持从xml或properties格式的文件中加载数据。
  * Strategy to load '.properties' files into a {@link PropertySource}.
  *
  * @author Dave Syer
@@ -48,8 +50,7 @@ public class PropertiesPropertySourceLoader implements PropertySourceLoader {
 		if (properties.isEmpty()) {
 			return Collections.emptyList();
 		}
-		return Collections
-				.singletonList(new OriginTrackedMapPropertySource(name, Collections.unmodifiableMap(properties), true));
+		return Collections.singletonList(new OriginTrackedMapPropertySource(name, Collections.unmodifiableMap(properties), true));
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

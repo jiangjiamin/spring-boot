@@ -36,8 +36,7 @@ import org.springframework.util.CollectionUtils;
  *
  * @author Phillip Webb
  */
-abstract class FilteringSpringBootCondition extends SpringBootCondition
-		implements AutoConfigurationImportFilter, BeanFactoryAware, BeanClassLoaderAware {
+abstract class FilteringSpringBootCondition extends SpringBootCondition implements AutoConfigurationImportFilter, BeanFactoryAware, BeanClassLoaderAware {
 
 	private BeanFactory beanFactory;
 
@@ -60,8 +59,16 @@ abstract class FilteringSpringBootCondition extends SpringBootCondition
 		return match;
 	}
 
-	protected abstract ConditionOutcome[] getOutcomes(String[] autoConfigurationClasses,
-			AutoConfigurationMetadata autoConfigurationMetadata);
+	/**
+	 * 模板方法接口
+	 *
+	 * @Author: xiaocainiaoya
+	 * @Date: 2021/08/30 16:57:04
+	 * @param autoConfigurationClasses
+	 * @param autoConfigurationMetadata
+	 * @return:
+	 **/
+	protected abstract ConditionOutcome[] getOutcomes(String[] autoConfigurationClasses, AutoConfigurationMetadata autoConfigurationMetadata);
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {

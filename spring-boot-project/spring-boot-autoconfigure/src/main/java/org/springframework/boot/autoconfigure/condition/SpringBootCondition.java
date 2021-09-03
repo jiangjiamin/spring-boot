@@ -29,6 +29,9 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 /**
+ * springBootCondition实现Condition接口, 是springboot众多OnXXXCondition的抽象父类
+ * 	用于打印一些条件注解评估报告的日志: 比如打印哪些配置类是符合条件注解的，哪些是不符合的。
+ *
  * Base of all {@link Condition} implementations used with Spring Boot. Provides sensible
  * logging to help the user diagnose what classes are loaded.
  *
@@ -42,21 +45,25 @@ public abstract class SpringBootCondition implements Condition {
 
 	@Override
 	public final boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+		// 得到metadata的类名或方法名
 		String classOrMethodName = getClassOrMethodName(metadata);
 		try {
+			// 判断每个配置类的每个条件注解@ConditionalOnXXX是否满足条件，然后记录到ConditionOutcome结果中
+			// 注意getMatchOutcome是一个抽象模板方法，交给OnXXXCondition子类去实现
 			ConditionOutcome outcome = getMatchOutcome(context, metadata);
+			// 打印condition评估的日志，哪些条件注解@ConditionalOnXXX是满足条件的，哪些是不满足条件的，这些日志都打印出来
 			logOutcome(classOrMethodName, outcome);
+			// 除了打印日志外，这些是否匹配的信息还要记录到ConditionEvaluationReport中
 			recordEvaluation(context, classOrMethodName, outcome);
+			// 最后返回@ConditionalOnXXX是否满足条件
 			return outcome.isMatch();
-		}
-		catch (NoClassDefFoundError ex) {
+		} catch (NoClassDefFoundError ex) {
 			throw new IllegalStateException("Could not evaluate condition on " + classOrMethodName + " due to "
 					+ ex.getMessage() + " not found. Make sure your own configuration does not rely on "
 					+ "that class. This can also happen if you are "
 					+ "@ComponentScanning a springframework package (e.g. if you "
 					+ "put a @ComponentScan in the default package by mistake)", ex);
-		}
-		catch (RuntimeException ex) {
+		} catch (RuntimeException ex) {
 			throw new IllegalStateException("Error processing condition on " + getName(metadata), ex);
 		}
 	}
@@ -72,6 +79,14 @@ public abstract class SpringBootCondition implements Condition {
 		return metadata.toString();
 	}
 
+	/**
+	 * medadata是类元元素则返回类名, 若是方法元元素则返回'类名#方法名'
+	 *
+	 * @Author: xiaocainiaoya
+	 * @Date: 2021/08/30 15:30:46
+	 * @param metadata
+	 * @return:
+	 **/
 	private static String getClassOrMethodName(AnnotatedTypeMetadata metadata) {
 		if (metadata instanceof ClassMetadata) {
 			ClassMetadata classMetadata = (ClassMetadata) metadata;

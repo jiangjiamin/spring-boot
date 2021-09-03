@@ -79,9 +79,17 @@ class OnBeanCondition extends FilteringSpringBootCondition implements Configurat
 		return ConfigurationPhase.REGISTER_BEAN;
 	}
 
+	/**
+	 * 上层FilteringSpringBootCondition的模板方法接口
+	 *
+	 * @Author: xiaocainiaoya
+	 * @Date: 2021/08/30 16:58:43
+	 * @param autoConfigurationClasses
+	 * @param autoConfigurationMetadata
+	 * @return:
+	 **/
 	@Override
-	protected final ConditionOutcome[] getOutcomes(String[] autoConfigurationClasses,
-			AutoConfigurationMetadata autoConfigurationMetadata) {
+	protected final ConditionOutcome[] getOutcomes(String[] autoConfigurationClasses, AutoConfigurationMetadata autoConfigurationMetadata) {
 		ConditionOutcome[] outcomes = new ConditionOutcome[autoConfigurationClasses.length];
 		for (int i = 0; i < outcomes.length; i++) {
 			String autoConfigurationClass = autoConfigurationClasses[i];
@@ -108,27 +116,42 @@ class OnBeanCondition extends FilteringSpringBootCondition implements Configurat
 		return null;
 	}
 
+	/**
+	 * 顶层接口SpringBootCondition的模板方法接口
+	 * 	分别处理了标注@ConditionalOnBean,@ConditionalOnSingleCandidate和@ConditionalOnMissingBean注解的情况
+	 *
+	 * @Author: xiaocainiaoya
+	 * @Date: 2021/08/30 16:59:23
+	 * @param context
+	 * @param metadata
+	 * @return:
+	 **/
 	@Override
 	public ConditionOutcome getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) {
 		ConditionMessage matchMessage = ConditionMessage.empty();
 		MergedAnnotations annotations = metadata.getAnnotations();
+		// (1)，配置类（metadata）标注@ConditionalOnBean注解的情况
 		if (annotations.isPresent(ConditionalOnBean.class)) {
+			// 将@ConditionalOnBean注解属性封装进BeanSearchSpec对象中
+			// 注意BeanSearchSpec是一个静态内部类，用来存储@ConditionalOnBean和@ConditionalOnMissingBean注解的属性值
 			Spec<ConditionalOnBean> spec = new Spec<>(context, metadata, annotations, ConditionalOnBean.class);
+			// 调用getMatchingBeans得到符合条件的bean
 			MatchResult matchResult = getMatchingBeans(context, spec);
+			// 如果不匹配
 			if (!matchResult.isAllMatched()) {
 				String reason = createOnBeanNoMatchReason(matchResult);
 				return ConditionOutcome.noMatch(spec.message().because(reason));
 			}
-			matchMessage = spec.message(matchMessage).found("bean", "beans").items(Style.QUOTE,
-					matchResult.getNamesOfAllMatches());
+			// 如果匹配
+			matchMessage = spec.message(matchMessage).found("bean", "beans").items(Style.QUOTE, matchResult.getNamesOfAllMatches());
 		}
+		// (2)，配置类（metadata）标注@ConditionalOnSingleCandidate注解的情况
 		if (metadata.isAnnotated(ConditionalOnSingleCandidate.class.getName())) {
 			Spec<ConditionalOnSingleCandidate> spec = new SingleCandidateSpec(context, metadata, annotations);
 			MatchResult matchResult = getMatchingBeans(context, spec);
 			if (!matchResult.isAllMatched()) {
 				return ConditionOutcome.noMatch(spec.message().didNotFind("any beans").atAll());
-			}
-			else if (!hasSingleAutowireCandidate(context.getBeanFactory(), matchResult.getNamesOfAllMatches(),
+			}else if (!hasSingleAutowireCandidate(context.getBeanFactory(), matchResult.getNamesOfAllMatches(),
 					spec.getStrategy() == SearchStrategy.ALL)) {
 				return ConditionOutcome.noMatch(spec.message().didNotFind("a primary bean from beans")
 						.items(Style.QUOTE, matchResult.getNamesOfAllMatches()));
@@ -136,9 +159,9 @@ class OnBeanCondition extends FilteringSpringBootCondition implements Configurat
 			matchMessage = spec.message(matchMessage).found("a primary bean from beans").items(Style.QUOTE,
 					matchResult.getNamesOfAllMatches());
 		}
+		// (3)，配置类（metadata）标注@ConditionalOnMissingBean注解的情况
 		if (metadata.isAnnotated(ConditionalOnMissingBean.class.getName())) {
-			Spec<ConditionalOnMissingBean> spec = new Spec<>(context, metadata, annotations,
-					ConditionalOnMissingBean.class);
+			Spec<ConditionalOnMissingBean> spec = new Spec<>(context, metadata, annotations, ConditionalOnMissingBean.class);
 			MatchResult matchResult = getMatchingBeans(context, spec);
 			if (matchResult.isAnyMatched()) {
 				String reason = createOnMissingBeanNoMatchReason(matchResult);
@@ -146,6 +169,7 @@ class OnBeanCondition extends FilteringSpringBootCondition implements Configurat
 			}
 			matchMessage = spec.message(matchMessage).didNotFind("any beans").atAll();
 		}
+		// 最终返回matchMessage
 		return ConditionOutcome.match(matchMessage);
 	}
 

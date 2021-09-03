@@ -40,24 +40,29 @@ class OnResourceCondition extends SpringBootCondition {
 
 	@Override
 	public ConditionOutcome getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) {
-		MultiValueMap<String, Object> attributes = metadata
-				.getAllAnnotationAttributes(ConditionalOnResource.class.getName(), true);
+		// 获得@ConditionalOnResource注解的属性元数据
+		MultiValueMap<String, Object> attributes = metadata.getAllAnnotationAttributes(ConditionalOnResource.class.getName(), true);
+		// 获得资源加载器，若ConditionContext中有ResourceLoader则用ConditionContext中的，没有则用默认的
 		ResourceLoader loader = context.getResourceLoader();
 		List<String> locations = new ArrayList<>();
+		// 将@ConditionalOnResource中定义的resources属性值取出来装进locations集合
 		collectValues(locations, attributes.get("resources"));
-		Assert.isTrue(!locations.isEmpty(),
-				"@ConditionalOnResource annotations must specify at least one resource location");
+		Assert.isTrue(!locations.isEmpty(), "@ConditionalOnResource annotations must specify at least one resource location");
 		List<String> missing = new ArrayList<>();
+		// 遍历所有的资源路径，若指定的路径的资源不存在则将其资源路径存进missing集合中
 		for (String location : locations) {
+			// 这里针对有些资源路径是Placeholders的情况，即处理${}
 			String resource = context.getEnvironment().resolvePlaceholders(location);
 			if (!loader.getResource(resource).exists()) {
 				missing.add(location);
 			}
 		}
+		// 如果存在某个资源不存在，那么则报错
 		if (!missing.isEmpty()) {
 			return ConditionOutcome.noMatch(ConditionMessage.forCondition(ConditionalOnResource.class)
 					.didNotFind("resource", "resources").items(Style.QUOTE, missing));
 		}
+		// 所有资源都存在，那么则返回能找到就提的资源
 		return ConditionOutcome.match(ConditionMessage.forCondition(ConditionalOnResource.class)
 				.found("location", "locations").items(locations));
 	}

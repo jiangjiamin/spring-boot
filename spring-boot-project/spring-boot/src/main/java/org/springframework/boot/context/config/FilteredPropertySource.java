@@ -46,8 +46,18 @@ class FilteredPropertySource extends PropertySource<PropertySource<?>> {
 		return getSource().getProperty(name);
 	}
 
-	static void apply(ConfigurableEnvironment environment, String propertySourceName, Set<String> filteredProperties,
-			Consumer<PropertySource<?>> operation) {
+	/**
+	 *
+	 *
+	 * @Author: xiaocainiaoya
+	 * @Date: 2021/09/02 15:11:39
+	 * @param environment
+	 * @param propertySourceName defaultProperties
+	 * @param filteredProperties spring.profiles.active/spring.profiles.include
+	 * @param operation 函数引用
+	 * @return:
+	 **/
+	static void apply(ConfigurableEnvironment environment, String propertySourceName, Set<String> filteredProperties, Consumer<PropertySource<?>> operation) {
 		MutablePropertySources propertySources = environment.getPropertySources();
 		PropertySource<?> original = propertySources.get(propertySourceName);
 		if (original == null) {
@@ -57,8 +67,7 @@ class FilteredPropertySource extends PropertySource<PropertySource<?>> {
 		propertySources.replace(propertySourceName, new FilteredPropertySource(original, filteredProperties));
 		try {
 			operation.accept(original);
-		}
-		finally {
+		}finally {
 			propertySources.replace(propertySourceName, original);
 		}
 	}

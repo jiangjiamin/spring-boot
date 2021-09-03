@@ -575,7 +575,11 @@ public class SpringApplication {
 	}
 
 	/**
-	 * 根据容器类型创建容器环境
+	 * 如果是web环境，创建StandardServletEnvironment
+	 * 	否则，创建StandardEnvironment
+	 * 	StandardServletEnvironment继承自StandardEnvironment，StandardEnvironment继承AbstractEnvironment
+	 * 	AbstractEnvironment内部有个MutablePropertySources类型的propertySources属性，用于存储多个属性源PropertySource
+	 * 	StandardEnvironment构造的时候会默认加上2个PropertySource。分别是MapPropertySource(调用System.getProperties()配置)和SystemEnvironmentPropertySource(调用System.getenv()配置)
 	 *
 	 * @Author: xiaocainiaoya
 	 * @Date: 2021/05/25 16:57:33

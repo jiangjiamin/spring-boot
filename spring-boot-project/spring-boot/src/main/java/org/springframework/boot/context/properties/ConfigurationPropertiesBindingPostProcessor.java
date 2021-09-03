@@ -41,8 +41,7 @@ import org.springframework.util.Assert;
  * @author Madhura Bhave
  * @since 1.0.0
  */
-public class ConfigurationPropertiesBindingPostProcessor
-		implements BeanPostProcessor, PriorityOrdered, ApplicationContextAware, InitializingBean {
+public class ConfigurationPropertiesBindingPostProcessor implements BeanPostProcessor, PriorityOrdered, ApplicationContextAware, InitializingBean {
 
 	/**
 	 * The bean name that this post-processor is registered with.
@@ -87,15 +86,13 @@ public class ConfigurationPropertiesBindingPostProcessor
 				+ bean.getName() + "'. Ensure that @ConstructorBinding has not been applied to regular bean");
 		try {
 			this.binder.bind(bean);
-		}
-		catch (Exception ex) {
+		}catch (Exception ex) {
 			throw new ConfigurationPropertiesBindException(bean, ex);
 		}
 	}
 
 	private boolean hasBoundValueObject(String beanName) {
-		return this.registry.containsBeanDefinition(beanName) && this.registry
-				.getBeanDefinition(beanName) instanceof ConfigurationPropertiesValueObjectBeanDefinition;
+		return this.registry.containsBeanDefinition(beanName) && this.registry.getBeanDefinition(beanName) instanceof ConfigurationPropertiesValueObjectBeanDefinition;
 	}
 
 	/**
@@ -107,6 +104,7 @@ public class ConfigurationPropertiesBindingPostProcessor
 	public static void register(BeanDefinitionRegistry registry) {
 		Assert.notNull(registry, "Registry must not be null");
 		if (!registry.containsBeanDefinition(BEAN_NAME)) {
+			// 注册ConfigurationPropertiesBindingPostProcessor
 			GenericBeanDefinition definition = new GenericBeanDefinition();
 			definition.setBeanClass(ConfigurationPropertiesBindingPostProcessor.class);
 			definition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);

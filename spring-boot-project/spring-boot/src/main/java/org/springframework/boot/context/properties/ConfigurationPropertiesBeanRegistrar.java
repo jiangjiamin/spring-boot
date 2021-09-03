@@ -48,8 +48,7 @@ final class ConfigurationPropertiesBeanRegistrar {
 	}
 
 	void register(Class<?> type) {
-		MergedAnnotation<ConfigurationProperties> annotation = MergedAnnotations
-				.from(type, SearchStrategy.TYPE_HIERARCHY).get(ConfigurationProperties.class);
+		MergedAnnotation<ConfigurationProperties> annotation = MergedAnnotations.from(type, SearchStrategy.TYPE_HIERARCHY).get(ConfigurationProperties.class);
 		register(type, annotation);
 	}
 
@@ -60,6 +59,16 @@ final class ConfigurationPropertiesBeanRegistrar {
 		}
 	}
 
+	/**
+	 * 获取注册到ioc容器的名称
+	 * 	命名规则: @ConfigurationProperties中的 --> 'prefix值-类全限定路径'
+	 *
+	 * @Author: xiaocainiaoya
+	 * @Date: 2021/09/02 14:59:14
+	 * @param type
+	 * @param annotation
+	 * @return:
+	 **/
 	private String getName(Class<?> type, MergedAnnotation<ConfigurationProperties> annotation) {
 		String prefix = annotation.isPresent() ? annotation.getString("prefix") : "";
 		return (StringUtils.hasText(prefix) ? prefix + "-" + type.getName() : type.getName());
@@ -80,10 +89,8 @@ final class ConfigurationPropertiesBeanRegistrar {
 		return false;
 	}
 
-	private void registerBeanDefinition(String beanName, Class<?> type,
-			MergedAnnotation<ConfigurationProperties> annotation) {
-		Assert.state(annotation.isPresent(), () -> "No " + ConfigurationProperties.class.getSimpleName()
-				+ " annotation found on  '" + type.getName() + "'.");
+	private void registerBeanDefinition(String beanName, Class<?> type, MergedAnnotation<ConfigurationProperties> annotation) {
+		Assert.state(annotation.isPresent(), () -> "No " + ConfigurationProperties.class.getSimpleName() + " annotation found on  '" + type.getName() + "'.");
 		this.registry.registerBeanDefinition(beanName, createBeanDefinition(beanName, type));
 	}
 
